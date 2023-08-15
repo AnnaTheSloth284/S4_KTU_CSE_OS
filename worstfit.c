@@ -62,7 +62,7 @@ int main() {
         }
     }
     
-    // Print remaining space in each block
+    // (Optional) Print remaining space in each block
     printf("\nAvailable Spaces:\n");
     for (int i = 0; i < nb; i++) {
         printf("Memory Block %d: %d\n", i + 1, memoryblocks[i]);
