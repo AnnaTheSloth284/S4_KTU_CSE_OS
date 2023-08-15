@@ -37,7 +37,7 @@ void calc(int n, int wt[n], int tat[n]){
 
 // FCFS Scheduling Algorithm
 void fcfs(int n, int at[n], int bt[n]){
-    sort(n, at, bt);
+    sort(n, pid, at, bt);
     int st[n],ct[n],tat[n],wt[n];
     st[0] = at[0];
     ct[0] = bt[0];
@@ -54,7 +54,7 @@ void fcfs(int n, int at[n], int bt[n]){
     printf("\nFCFS Scheduling:\n");
     printf("Process\tArrival Time\tBurst Time\tStarting Time\tCompletion Time\tTurnaround Time\tWaiting Time\n");
     for(int i = 0; i<n;i++){
-        printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n", i+1, at[i], bt[i], st[i], ct[i], tat[i], wt[i]);
+        printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n", pid[i], at[i], bt[i], st[i], ct[i], tat[i], wt[i]);
     }
     calc(n,wt,tat);
 }
