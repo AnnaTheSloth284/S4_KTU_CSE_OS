@@ -1,131 +1,76 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 
-#define MAX 100
+//Sort in increasing order of arrival time
+void sort(int n, int pid[n], int at[n], int bt[n]){
+    for(int i=0; i<n; i++){
+        for(int j=0; j<n-i-1; j++){
+            if(at[i]>at[i+1]){
+                int temp1 = at[i];
+                at[i] = at[i+1];
+                at[i+1] = temp1;
 
-typedef struct
-{
-    int pid;
-    int arrival_time;
-    int burst_time;
-    int start_time;
-    int completion_time;
-    int waiting_time;
-    int turnaround_time;
-} Process;
+                temp1 = bt[i];
+                bt[i] = bt[i+1];
+                bt[i+1] = temp1;
+                
+                temp1 = pid[i];
+                pid[i] = pid[i+1];
+                pid[i+1] = temp1;
+            }
+        }
+    }
+}
 
-void print_table(Process p[], int n);
-void print_gantt_chart(Process p[], int n);
+// To calculate average wt and tat
+void calc(int n, int wt[n], int tat[n]){
+    float tot_wt =0, tot_tat=0;
+    for(int i = 0; i<n;i++){
+        tot_wt += wt[i];
+        tot_tat += tat[i];
+    }
+    tot_wt = tot_wt / n;
+    tot_tat = tot_tat / n;
+    printf("\nAverage waiting time: %f\nAverage turnaround time: %f\n", tot_wt, tot_tat);
+}
 
-int main()
-{
-    Process p[MAX];
-    int i, n;
-    int sum_waiting_time = 0, sum_turnaround_time = 0;
-    printf("Enter total number of process: ");
+
+// FCFS Scheduling Algorithm
+void fcfs(int n, int at[n], int bt[n]){
+    sort(n, at, bt);
+    int st[n],ct[n],tat[n],wt[n];
+    st[0] = at[0];
+    ct[0] = bt[0];
+    wt[0] = 0;
+    tat[0] = ct[0];
+    for(int i = 1; i<n;i++){
+        st[i] = fmax(at[i],ct[i-1]);
+        ct[i] = st[i] + bt[i];
+        tat[i] = ct[i] - at[i];
+        wt[i] = tat[i] - bt[i];
+        if(wt[i]<0) wt[i]=0;
+    }
+    //Print
+    printf("\nFCFS Scheduling:\n");
+    printf("Process\tArrival Time\tBurst Time\tStarting Time\tCompletion Time\tTurnaround Time\tWaiting Time\n");
+    for(int i = 0; i<n;i++){
+        printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n", i+1, at[i], bt[i], st[i], ct[i], tat[i], wt[i]);
+    }
+    calc(n,wt,tat);
+}
+
+
+int main() {
+    int n;
+    int qua;
+    printf("Enter the number of processes: ");
     scanf("%d", &n);
-    printf("Enter burst time for each process:\n");
-    for(i=0; i<n; i++) {
-        p[i].pid = i+1;
-        printf("P[%d] : ", i+1);
-        scanf("%d %d", &p[i].arrival_time, &p[i].burst_time);
+    int pid[n], at[n], bt[n];
+    printf("Enter the pid, arrival time and burst time of each process:\n");
+    for (int i = 0; i < n; i++) {
+        //printf("Process %d: ", i + 1);
+        scanf("%d %d %d", &pid[i], &at[i], &bt[i]);
     }
-
-    for(i=0; i<n; i++) {
-        if(i==0){
-            p[i].start_time = p[i].arrival_time = 0;
-            p[i].completion_time = p[i].burst_time;
-            p[i].turnaround_time = p[i].completion_time - p[i].arrival_time;
-            p[i].waiting_time = p[i].turnaround_time - p[i].burst_time;
-        }
-        else{
-            //Start time = max (arrival time of current process, completion time of the previous process)
-            //Completion time = start time + burst time of the current process.
-            //Turnaround time =  completion time - arrival time of the current process.
-            //Waiting time = Turnaround time - burst time of the current process.
-            p[i].start_time = fmax(p[i].arrival_time,p[i-1].completion_time);
-            p[i].completion_time = p[i].start_time + p[i].burst_time;
-            p[i].turnaround_time = p[i].completion_time - p[i].arrival_time;
-            p[i].waiting_time = p[i].turnaround_time - p[i].burst_time;
-        }
-    }
-
-    // calculate sum of waiting time and sum of turnaround time
-    for(i=0; i<n; i++) {
-            sum_waiting_time += p[i].waiting_time;
-            sum_turnaround_time += p[i].turnaround_time;
-    }
-
-    // print table
-    puts(""); 
-    print_table(p, n);
-    puts("");
-    printf("Total Waiting Time      : %-2d\n", sum_waiting_time);
-    printf("Average Waiting Time    : %-2.2lf\n", (double)sum_waiting_time / (double) n);
-    printf("Total Turnaround Time   : %-2d\n", sum_turnaround_time);
-    printf("Average Turnaround Time : %-2.2lf\n", (double)sum_turnaround_time / (double) n);
-
-    // print Gantt chart
-    puts(""); // Empty line
-    puts("          GANTT CHART          ");
-    puts("          ***********          ");
-    print_gantt_chart(p, n);
+    fcfs(n, at, bt);
     return 0;
-}
-
-
-void print_table(Process p[], int n)
-{
-    int i;
-
-    puts("+-----+--------------+------------+--------------+-----------------+");
-    puts("| PID | Arrival Time | Burst Time | Waiting Time | Turnaround Time |");
-    puts("+-----+--------------+------------+--------------+-----------------+");
-
-    for(i=0; i<n; i++) {
-        printf("| %2d  |      %2d      |     %2d     |      %2d      |        %2d       |\n"
-               , p[i].pid, p[i].arrival_time, p[i].burst_time, p[i].waiting_time, p[i].turnaround_time );
-        puts("+-----+--------------+------------+--------------+-----------------+");
-    }
-
-}
-
-
-void print_gantt_chart(Process p[], int n)
-{
-    int i, j;
-    // print top bar
-    printf(" ");
-    for(i=0; i<n; i++) {
-        for(j=0; j<p[i].burst_time; j++) printf("--");
-        printf(" ");
-    }
-    printf("\n|");
-
-    // printing process id in the middle
-    for(i=0; i<n; i++) {
-        for(j=0; j<p[i].burst_time - 1; j++) printf(" ");
-        printf("P%d", p[i].pid);
-        for(j=0; j<p[i].burst_time - 1; j++) printf(" ");
-        printf("|");
-    }
-    printf("\n ");
-    // printing bottom bar
-    for(i=0; i<n; i++) {
-        for(j=0; j<p[i].burst_time; j++) printf("--");
-        printf(" ");
-    }
-    printf("\n");
-
-    // printing the time line
-    printf("0");
-    for(i=0; i<n; i++) {
-        for(j=0; j<p[i].burst_time; j++) printf("  ");
-        //if(p[i].turnaround_time > 9) printf("\b"); // backspace : remove 1 space
-        printf("%d", p[i].completion_time);
-
-    }
-    printf("\n");
-
 }
